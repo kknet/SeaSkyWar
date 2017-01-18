@@ -1,0 +1,294 @@
+syntax="proto2";
+package khero;
+option java_package="com.kongyt.khero.messages";
+
+
+// 消息ID定义规范
+// 前两个字节为消息模块ID
+// 中间4位为消息类别区别值，0表示普通请求响应消息，1表示Command消息，2表示Notification
+// 最后12位为具体的消息值，Response消息为Request消息ID+1
+enum Msg
+{
+
+  // BaseModule
+  // 所有的Request和Response消息
+  Register_Request	= 0x00010001;
+  Register_Response	= 0x00010002;
+
+  Login_Request		= 0x00010003;
+  Login_Response	= 0x00010004;
+
+  Operate_Request       = 0x00010005;
+ 
+  Game_Start_Request    = 0x00010007;
+
+  Create_Home_Request   = 0x00010009;
+  Create_Home_Response  = 0x0001000A;
+
+  Join_Home_Request     = 0x0001000B;
+  Join_Home_Response    = 0x0001000C;
+
+  Home_Info_Request     = 0x0001000D;
+  Home_Info_Response    = 0x0001000F;
+
+  Role_List_Request     = 0x00010011;
+  Role_List_Response    = 0x00010012;
+
+  Role_Info_Request     = 0x00010013;
+  Role_Info_Response    = 0x00010014;
+
+  Loading_Complete_Request = 0x00010015;
+
+  // 所有Command消息
+  Debug_Command		= 0x00011001;
+
+
+  // 所有Nitification消息
+  Welcom_Notification	= 0x00012001;
+  Frame_Notification    = 0x00012002;
+  Game_Start_Notification = 0x00012003;
+}
+
+
+message Command
+{
+  //包含所有的XXXCommand消息
+  optional DebugCommand	debug	= 1;
+}
+
+message Request
+{
+  //包含所有的XXXRequest消息
+  optional RegisterRequest register	= 1;
+  optional LoginRequest login		= 2;
+  optional OperateRequest operate       = 3;
+  optional GameStartRequest gameStart   = 4;//开始游戏
+  optional CreateHomeRequest createHome = 5;//开房间
+  optional JoinHomeRequest joinHome     = 6; // 加入房间
+  optional HomeInfoRequest homeInfo     = 7;
+  optional RoleListRequest roleList     = 8;
+  optional RoleInfoRequest roleInfo     = 9;
+  optional LoadingCompleteRequest ready     = 10;//数据加载完毕，等待游戏
+}
+
+message Response
+{
+  required bool result		= 1; // true表示应答成功，false表示应答失败
+  required bool last_response	= 2; // 一个请求可以包含多个应答，用于指示是否是最后一个应答
+  optional bytes error_describe	= 3; // result为false时，描述错误信息
+  //包含所有的Response消息
+  optional RegisterResponse register	= 4;
+  optional LoginResponse login		= 5;
+  optional CreateHomeResponse createHome = 6;
+  optional JoinHomeResponse joinHome     = 7;
+  optional HomeInfoResponse homeInfo     = 8;
+  optional RoleListResponse roleList     = 9;
+  optional RoleInfoResponse roleInfo     = 10;
+}
+
+message Notification
+{
+  //包含所有的Notification消息
+  optional WelcomeNotification welcome = 1;
+  optional FrameNotification frame = 2;
+  optional GameStartNotification  gameStart = 3;
+}
+
+// ----------------- 所有Command消息定义 -------------------------------
+
+message DebugCommand
+{
+  required string command	= 1;
+}
+
+
+// ----------------- 所有Request和Response消息定义 ---------------------
+
+
+message RegisterRequest
+{
+  required string username	= 1;
+  required string password	= 2;
+}
+
+message RegisterResponse
+{
+  required bool result          = 1;
+  optional string text          = 2;
+}
+
+message LoginRequest
+{
+  required string username	= 1;
+  required string password	= 2;
+}
+
+message LoginResponse
+{
+  required int32 playerId       = 1;
+}
+
+message KeyMsg
+{
+  required int32 keyCode   = 1;
+  required bool keyDown    = 2;
+}
+
+message TouchMsg
+{
+  required float touchX    = 1;
+  required float touchY    = 2;
+  required bool touchUp    = 3;
+}
+
+
+message OperateRequest
+{
+  required int32 playerId       = 1;
+  optional KeyMsg keyMsg        = 2;
+  optional TouchMsg touchMsg    = 3;
+}
+
+
+//房主开始游戏
+message GameStartRequest
+{
+  required int32 homeId         = 1;  // 房间ID
+}
+
+
+message CreateHomeRequest
+{
+   required string homeName     = 1;
+}
+
+
+message CreateHomeResponse
+{
+  required bool result          = 1;
+  optional int32 homeId         = 2;
+  optional string text          = 3;
+}
+
+message JoinHomeRequest
+{
+  required int32 homeId         = 1;
+}
+
+message JoinHomeResponse
+{
+  required int32 homeId         = 1;
+  required int32 seatId         = 2;
+  required bool result          = 3;
+  optional string text          = 4;
+}
+
+
+message HomeInfoRequest
+{
+  required int32 homeId         = 1;
+}
+
+message HomeInfoResponse
+{
+  required bool result          = 1;
+  required int32 homeId         = 2;
+  required string homeName      = 3;
+  required int32 owner          = 4;
+  required int32 playerNum      = 5;
+  optional int32 seatIds        = 6;
+  optional string text          = 7;
+}
+
+// ----------------- 所有Nitification消息定义 -------------------------
+message WelcomeNotification
+{
+  required string text		= 1;
+}
+
+
+message RoleListRequest
+{
+  required int32 homeId         = 1;
+}
+
+message RoleListResponse
+{
+  repeated int32 roles         = 1;
+}
+
+
+message RoleInfoRequest
+{
+  required int32 homeId         = 1;
+  required int32 roleId         = 2;
+}
+
+
+message RoleInfoResponse
+{
+  required int32 seatId         = 1;  // 单局游戏房间座位ID
+  required float x              = 2;  // x坐标
+  required float y              = 3;  // y坐标
+  required float max_speed      = 4;  //最大速度
+  required float min_speed      = 5;  //最小速度
+  required float degree         = 6;  //角度
+  required float angularVelocity = 7; //每秒最大调整角度
+
+
+  required int32 gunNum          = 8;  // 机枪数量
+  required float gunDemage    = 9; // 子弹伤害
+  required int32 gunMagazineCapacity = 10; // 弹夹容量
+  required float gunFireRate        = 11; // 射速
+  required float gunFireRange       = 12; // 射程
+
+  required float missileDemage   = 13; // 导弹伤害
+  required int32 missileNum      = 14; //载弹量
+  required float missileSpeed    = 15; // 导弹速度
+  required float missileMaxAngularVelocity = 16; // 每秒导弹最大旋转角度
+  
+  required float bombDemage      = 17; // 炸弹伤害
+  required float bombNum         = 18; // 炸弹载弹量
+  required float bombFireRate    = 19; // 扔炸弹频率
+
+
+  required int32 campId          = 20; // 阵营ID，也为自身子弹碰撞掩码 
+}
+
+// 服务器做帧同步
+message FrameNotification
+{
+  required int32 frameId        = 1;
+  repeated OperateRequest operates = 2;
+}
+
+
+// 通知客户端开始游戏
+message GameStartNotification
+{
+
+}
+
+message LoadingCompleteRequest
+{
+  required int32 homeId = 1;
+  required int32 seatId = 2;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
